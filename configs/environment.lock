@@ -1,0 +1,27 @@
+# Frozen engine environment for the Qwen3.8-27B KLD campaign.
+# Publishable runs reproduce against these exact public commits; scripts/setup_env.sh
+# reads this file.
+#
+# vllm:  fork with EXL3 support — pinned to the HEAD of feature/exl3-support.
+#        Re-pin this value whenever the branch moves and the campaign is re-run;
+#        published results/ numbers must always name the commit that produced them.
+vllm_repo:    https://github.com/jedi95/vllm
+vllm_ref:     feature/exl3-support
+vllm_commit:  51df79b2665b644735d051a9d891e8fa16133120
+
+# b12x: SM120/SM121 kernel library (global linear_backend="b12x" in all runs).
+b12x_repo:    https://github.com/local-inference-lab/b12x
+b12x_commit:  0f3a8cbfd1c11d27f04e3ab37a802d522f4f1c68
+
+# EXL3 CUDA extension (exllamav3_ext): the vLLM fork loads it via
+# VLLM_EXL3_EXT_PATH. It is built from the exllamav3 package sources
+# (pip package exllamav3==1.5.0, which ships the .cu/.cuh sources and a JIT
+# loader in exllamav3/ext.py). setup_env.sh JIT-builds it once and records
+# the path in .env.
+exllamav3_pypi: exllamav3==1.5.0
+
+# Reference software stack of the venv:
+#   python 3.12, torch 2.13.0+cu130, triton 3.7.1, transformers 5.17.0,
+#   flashinfer-python 0.6.18.post1, nvidia-cutlass-dsl 4.6.2, safetensors 0.8.0
+# setup_env.sh lets vllm/b12x resolve their own pinned deps; these are for
+# auditing a hand-built venv against the capture manifests.

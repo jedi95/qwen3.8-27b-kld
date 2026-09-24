@@ -1,0 +1,13 @@
+# raw full-vocab logit captures (~2 GB each) — never commit
+captures/
+captures-v2-archive/
+*.safetensors
+__pycache__/
+*.pyc
+logs/
+.DS_Store
+.ext-cache/
+
+# machine-local config + setup output
+.env
+results/expected/

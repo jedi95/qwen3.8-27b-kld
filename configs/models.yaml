@@ -1,0 +1,258 @@
+# Candidate registry — Qwen3.8-27B KLD campaign
+# Revisions pinned from the HuggingFace hub refs/main on 2026-09-21
+# (see scripts/pin_revisions.py to re-derive; verify before trusting).
+# All models resolve under the local HF hub cache (~/.cache/huggingface/hub).
+#
+# Engine pins live in configs/environment.lock; runtime paths come from .env.
+#
+# Semantics: default kernel backend is b12x for every layer/shape that
+# supports it (global linear_backend="b12x"; layer types with no b12x kernel
+# fall back to auto per the engine's own filter policy). Exceptions recorded
+# per candidate in extra_llm_kw:
+#   - the three NVFP4 checkpoints also run with the CUTLASS FP4 GEMM forced
+#     (nvfp4_w4a4="flashinfer_cutlass") — the CUTLASS-vs-b12x GEMM rounding
+#     was measured to move KLD;
+#   - checkpoints whose GDN in_proj_qkvz is compressed-tensors W8A8-FP8 with
+#     DYNAMIC activation scales (unsloth, prismaqua) route fp8_w8a8 back to
+#     auto (FlashInfer): the b12x scaled_mm kernel requires static per-tensor
+#     scales.
+
+tp: 1
+context_length: 2048
+tokens_file: data/qwen38-kld-tokens-2048.json
+tokens_sha256: 435403d28163c7cdf4cfe81e64c08a99d2b38d6817a207b87cd7ee2c6be3b320
+
+# Reference: BF16 under the SAME global b12x backend, so every comparison
+# stays kernel-fair (the b12x LM-head vocab projection is itself a kernel
+# change; it measured bit-identical to cuBLAS at N=248044).
+reference:
+  label: bf16-b12x
+  model: Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  quantization: null
+  on_disk_gb: 55.6
+  extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+candidates:
+  - label: fp8
+    model: Qwen/Qwen3.8-27B-FP8
+    revision: 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a
+    quantization: null            # self-describing checkpoint (fp8)
+    on_disk_gb: 30.9
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: nvfp4-nvidia
+    model: nvidia/Qwen3.8-27B-NVFP4
+    revision: 482ca0f3832238542f8f5295dde86b5f22711d80
+    quantization: null            # modelopt MIXED_PRECISION, auto-detected
+    on_disk_gb: 21.9
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+    # GDN in_proj_ba (N=96) runs natively under the global b12x backend.
+
+  - label: nvfp4-qad
+    model: local-inference-lab/Qwen3.8-27B-NVFP4-QAD
+    revision: b9389787cbb5a09fbcf3517bdf673b5a56b16b02
+    quantization: null
+    on_disk_gb: 25.6
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: nvfp4-unsloth
+    model: unsloth/Qwen3.8-27B-NVFP4
+    revision: 7d6f8d4d72f56b92b3cdbf22f156b90e1bab0108
+    quantization: null            # compressed-tensors, auto-detected
+    on_disk_gb: 23.4
+    # GDN in_proj_qkvz is compressed-tensors W8A8-FP8 with dynamic activation
+    # scales, which the b12x scaled_mm kernel does not support — route
+    # fp8_w8a8 to auto (FlashInfer), keep global b12x for everything else.
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x", "linear_backend_per_quant": {"fp8_w8a8": "auto"}}}'
+
+  # CUTLASS NVFP4 GEMM controls (the exception rows): identical global b12x
+  # stack, only the FP4 core GEMM forced back to FlashInfer CUTLASS. The
+  # per-quant override key is "nvfp4_w4a4".
+  - label: nvfp4-nvidia-cutlass
+    model: nvidia/Qwen3.8-27B-NVFP4
+    revision: 482ca0f3832238542f8f5295dde86b5f22711d80
+    quantization: null
+    on_disk_gb: 21.9
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x", "linear_backend_per_quant": {"nvfp4_w4a4": "flashinfer_cutlass"}}}'
+
+  - label: nvfp4-qad-cutlass
+    model: local-inference-lab/Qwen3.8-27B-NVFP4-QAD
+    revision: b9389787cbb5a09fbcf3517bdf673b5a56b16b02
+    quantization: null
+    on_disk_gb: 25.6
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x", "linear_backend_per_quant": {"nvfp4_w4a4": "flashinfer_cutlass"}}}'
+
+  - label: nvfp4-unsloth-cutlass
+    model: unsloth/Qwen3.8-27B-NVFP4
+    revision: 7d6f8d4d72f56b92b3cdbf22f156b90e1bab0108
+    quantization: null
+    on_disk_gb: 23.4
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x", "linear_backend_per_quant": {"nvfp4_w4a4": "flashinfer_cutlass", "fp8_w8a8": "auto"}}}'
+
+  - label: awq-int4
+    model: cyankiwi/Qwen3.8-27B-AWQ-INT4
+    revision: 6e134bae811fb5adac50ee042ae5f029ac6779aa
+    quantization: null
+    on_disk_gb: 21.0
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: w4a16-autoround
+    model: dbirks/Qwen3.8-27B-W4A16-AutoRound
+    revision: 1f05c441c4e64ae0549de44fa9ea5a6d43610314
+    quantization: null
+    on_disk_gb: 19.5
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-k5k6
+    model: malaiwah/Qwen3.8-27B-EXL3-K5K6-hydrated
+    revision: 853acef0b24961b269cdcf32b1ebb405649b545b
+    quantization: exl3            # explicit: exl3 is not in stock method auto-detect order
+    on_disk_gb: 21.6
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  # ---------------------------------------------------------------------------
+  # Community/vendor checkpoints + turboderp self-calibrated EXL3 rungs.
+  # Same semantics as above: global b12x, 2 fresh-process captures each.
+  # ---------------------------------------------------------------------------
+
+  - label: prismaqua-5.5bit
+    model: rdtand/Qwen3.8-27B-PrismaAQUA-5.5bit-vllm
+    revision: 6dc090346f4f32acc320e48d9c413ea96a98d4c6
+    quantization: null            # compressed-tensors, auto-detected
+    # GDN in_proj_qkvz is compressed-tensors W8A8-FP8 with dynamic activation
+    # scales (same case as unsloth): route fp8_w8a8 back to auto (FlashInfer),
+    # keep global b12x elsewhere.
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x", "linear_backend_per_quant": {"fp8_w8a8": "auto"}}}'
+
+  - label: nvfp4-radixark
+    model: RadixArk/Qwen3.8-27B-NVFP4
+    revision: 319f741cce68d7914884900c138a1fbb70a42f30
+    quantization: null            # modelopt, auto-detected
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: nvfp4-radixark-bf16lmhead
+    model: RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead
+    revision: 009632fef96dd349150baa780c984e62e70e91fe
+    quantization: null
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: int4-redhat
+    model: RedHatAI/Qwen3.8-27B-INT4
+    revision: 779ba0009b8c9ceaa6b110f4573a5a50cac12026
+    quantization: null            # compressed-tensors, auto-detected
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: int8-autoround-gs128
+    model: Minachist/Qwen3.8-27B-INT8-AutoRound
+    revision: main-gs128             # branch-indexed variant (group-size 128);
+                                     # branch HEAD 6c6805f0 at registry add
+    quantization: null               # auto-round, auto-detected
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: pessoa-456
+    model: lribeiro/Qwen3.8-27B-Pessoa-5090
+    revision: a0291e0cf4ecc22bb82c70515ca8ed39690a0a8c
+    on_disk_gb: 22.6
+    runs: 5                      # run-to-run KLD spread ~4e-4 (nondeterministic
+                                 # fallback kernels); row = mean of 5 captures
+    quantization: null               # compressed-tensors mixed INT4/5/6 W*A16
+                                     # (AutoRound), auto-detected
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: fp8-pessoa
+    model: lribeiro/Qwen3.8-27B-FP8-Pessoa
+    revision: 92d3b9c58baebc6bec085860c4030bda42ce3669
+    on_disk_gb: 31.2
+    runs: 5                      # run-to-run KLD spread ~8e-4 (nondeterministic
+                                 # fallback kernels); row = mean of 5 captures
+    quantization: null               # compressed-tensors W8A16 fp8 GPTQ recipe,
+                                     # auto-detected
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: nvfp4-gittensor
+    model: gittensor-model-hub/Qwen3.8-27B-NVFP4-RTX5090
+    revision: 5b7a687fc8211a5d631c8ca6a593dd37eb26ce33
+    quantization: null            # modelopt, auto-detected
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: int8-autoround
+    model: Minachist/Qwen3.8-27B-INT8-AutoRound
+    revision: dd33c3e940ba10969103e9aea185281c522df7e6
+    quantization: null            # auto-round, auto-detected
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  # turboderp self-calibrated EXL3 (branch-indexed repo: weights exist ONLY on
+  # the SC_* branches; main has recipes + calibration traces only). H3-H6 =
+  # head bits; measured with the text tower (V-variants quantize vision too).
+  - label: exl3-200bpw
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: 2.00bpw                # plain (non-SC) rung — self-calibration control
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-sc200
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: SC_2.00bpw_H3
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-250bpw
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: 2.50bpw                # plain (non-SC) rung — self-calibration control
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-300bpw
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: 3.00bpw                # plain (non-SC) rung — self-calibration control
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-sc300
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: SC_3.00bpw_H4
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-350bpw
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: 3.50bpw                # plain (non-SC) rung — self-calibration control
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-400bpw
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: 4.00bpw                # plain (non-SC) rung — self-calibration control
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-sc400
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: SC_4.00bpw_H5
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-600bpw
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: 6.00bpw                # plain (non-SC) 6.00bpw — self-calibration control
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-500bpw
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: 5.00bpw                # plain (non-SC) rung — self-calibration control
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-sc500
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: SC_5.00bpw_H6
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'
+
+  - label: exl3-sc600
+    model: turboderp/Qwen3.8-27B-exl3
+    revision: SC_6.00bpw_H6
+    quantization: exl3
+    extra_llm_kw: '{"kernel_config": {"linear_backend": "b12x"}}'

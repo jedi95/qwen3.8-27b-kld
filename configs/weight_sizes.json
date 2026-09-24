@@ -1,0 +1,121 @@
+{
+ "_note": "Main-model weight bytes on disk (safetensors files referenced by model.safetensors.index.json in the HF cache snapshot actually loaded at capture time; MTP head files listed separately and excluded from main_bytes).",
+ "sizes": {
+  "Minachist/Qwen3.8-27B-INT8-AutoRound": {
+   "main_bytes": 30875780104,
+   "mtp_bytes": 0
+  },
+  "Minachist/Qwen3.8-27B-INT8-AutoRound@main-gs128": {
+   "main_bytes": 31442792376,
+   "mtp_bytes": 0
+  },
+  "Qwen/Qwen3.8-27B": {
+   "main_bytes": 55563006776,
+   "mtp_bytes": 0
+  },
+  "Qwen/Qwen3.8-27B-FP8": {
+   "main_bytes": 30389664704,
+   "mtp_bytes": 477202224
+  },
+  "RadixArk/Qwen3.8-27B-NVFP4": {
+   "main_bytes": 21921697280,
+   "mtp_bytes": 0
+  },
+  "RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead": {
+   "main_bytes": 23749332688,
+   "mtp_bytes": 0
+  },
+  "RedHatAI/Qwen3.8-27B-INT4": {
+   "main_bytes": 18603387656,
+   "mtp_bytes": 849400392
+  },
+  "cyankiwi/Qwen3.8-27B-AWQ-INT4": {
+   "main_bytes": 21018000928,
+   "mtp_bytes": 0
+  },
+  "dbirks/Qwen3.8-27B-W4A16-AutoRound": {
+   "main_bytes": 19452780008,
+   "mtp_bytes": 0
+  },
+  "gittensor-model-hub/Qwen3.8-27B-NVFP4-RTX5090": {
+   "main_bytes": 17916112584,
+   "mtp_bytes": 0
+  },
+  "local-inference-lab/Qwen3.8-27B-NVFP4-QAD": {
+   "main_bytes": 25578543584,
+   "mtp_bytes": 0
+  },
+  "malaiwah/Qwen3.8-27B-EXL3-K5K6-hydrated": {
+   "main_bytes": 21587265510,
+   "mtp_bytes": 0
+  },
+  "nvidia/Qwen3.8-27B-NVFP4": {
+   "main_bytes": 21921697280,
+   "mtp_bytes": 0
+  },
+  "rdtand/Qwen3.8-27B-PrismaAQUA-5.5bit-vllm": {
+   "main_bytes": 23603517768,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@2.00bpw": {
+   "main_bytes": 10779069185,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@2.50bpw": {
+   "main_bytes": 12297537965,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@3.00bpw": {
+   "main_bytes": 13819939309,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@3.50bpw": {
+   "main_bytes": 15338408461,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@4.00bpw": {
+   "main_bytes": 16860809795,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@5.00bpw": {
+   "main_bytes": 19901680029,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@6.00bpw": {
+   "main_bytes": 22942550421,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@SC_2.00bpw_H3": {
+   "main_bytes": 10200222319,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@SC_3.00bpw_H4": {
+   "main_bytes": 13452446219,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@SC_4.00bpw_H5": {
+   "main_bytes": 16705325725,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@SC_5.00bpw_H6": {
+   "main_bytes": 19905120723,
+   "mtp_bytes": 0
+  },
+  "turboderp/Qwen3.8-27B-exl3@SC_6.00bpw_H6": {
+   "main_bytes": 22945991236,
+   "mtp_bytes": 0
+  },
+  "unsloth/Qwen3.8-27B-NVFP4": {
+   "main_bytes": 22568192096,
+   "mtp_bytes": 849400392
+  },
+  "lribeiro/Qwen3.8-27B-Pessoa-5090": {
+   "main_bytes": 21743865232,
+   "mtp_bytes": 849400392
+  },
+  "lribeiro/Qwen3.8-27B-FP8-Pessoa": {
+   "main_bytes": 29473002672,
+   "mtp_bytes": 1770897648
+  }
+ }
+}

@@ -1,0 +1,43 @@
+{
+  "tokens_file": "data/qwen38-kld-tokens-2048.json",
+  "n_tokens": 2048,
+  "token_first16": [
+    271,
+    283,
+    8137,
+    211388,
+    455,
+    283,
+    73714,
+    8137,
+    211388,
+    455,
+    369,
+    449,
+    6163,
+    4383,
+    1116,
+    12069
+  ],
+  "token_last16": [
+    978,
+    5384,
+    641,
+    14305,
+    733,
+    279,
+    3988,
+    220,
+    22,
+    18,
+    15,
+    82,
+    1116,
+    551,
+    43759,
+    303
+  ],
+  "sha256": "435403d28163c7cdf4cfe81e64c08a99d2b38d6817a207b87cd7ee2c6be3b320",
+  "source": "WikiText-2 window via Qwen3.8 tokenizer, reused byte-identical from an earlier Qwen3.8 quantization benchmark",
+  "frozen_at": "2026-09-21"
+}
